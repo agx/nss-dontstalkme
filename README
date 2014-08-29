@@ -1,0 +1,47 @@
+# -*- mode: markdown; -*-
+
+Overview
+--------
+nss-dontstalk me is a nsswitch module that maps host lookups of well known web
+trackers to localhost so they become uneffective. 
+
+The idea is to have the same black lists available regardless of the browser/application used.
+
+While doing this via /etc/host would be possible there's no /etc/hosts.d mechanism to
+keep the changes separate. Also maintaining this for ipv4 and ipv6 can be cumbersome.
+
+Compiling
+---------
+nss-dontstalkme uses autotools to build the package:
+
+    ./autogen.sh
+    ./configure --prefix=/usr
+    make
+
+Installation
+------------
+Make sure libnss-dontstalkme.so.2 is in your libraries load path
+either installing it into the filesystem
+
+    make install
+
+or, if you want to run from the built source, by setting LD_LIBRARY_PATH
+
+    LD_LIBRARY_PATH=$PWD/src/.libs
+
+Afterwards add dontstalkme to the hosts entry of /etc/nsswitch.conf e.g. change
+
+    hosts: files myhostname mdns4_minimal [NOTFOUND=return] dns mdns4n
+
+to
+
+    hosts: files myhostname mdns4_minimal [NOTFOUND=return] dontstalkme dns mdns4
+
+It's important to add the `dontstalkme` entry before the `dns` entry.
+
+Testing
+-------
+You can test the basic functionality by running
+
+    LD_LIBRARY_PATH=$PWD/src/.libs/ getent ahostsv4 google-analytics.com
+
