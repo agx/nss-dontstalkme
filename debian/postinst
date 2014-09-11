@@ -1,0 +1,47 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+log() {
+    echo "$*"
+}
+
+# try to insert donststalkme entries to the "hosts" line in /etc/nsswitch.conf to
+# automatically enable nss-dontstalkme support; do not change the configuration if the
+# "hosts" line already references dontstalkme lookups
+insert_dontstalkme() {
+    log "Checking NSS setup..."
+    # abort if /etc/nsswitch.conf does not exist
+    if ! [ -e /etc/nsswitch.conf ]; then
+        log "Could not find /etc/nsswitch.conf."
+        return
+    fi
+    perl -i -pe '
+        sub insert {
+            # this also splits on tab
+            my @bits=split(" ", shift);
+            # do not break configuration if the "hosts" line already references
+            # dontstalkme
+            if (grep { $_ eq "dontstalkme" } @bits) {
+                return join " ", @bits;
+            }
+            # change "dns" into "dontstalkme dns"
+            return join " ", map {
+                $_ eq "dns" ? ("dontstalkme",$_) : $_
+            } @bits;
+        }
+        s/^(hosts:\s+)(.*)/$1.insert($2)/e;
+    ' /etc/nsswitch.conf
+}
+
+action="$1"
+
+if [ configure = "$action" ]; then
+    if [ -z "$2" ]; then
+        log "First installation detected..."
+        # first install: setup the recommended configuration (unless
+        # nsswitch.conf already contains dontstalkme entries)
+        insert_dontstalkme
+    fi
+fi

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+set -x
+
+getent ahostsv4 foo.google-analytics.com | grep -qs '^127\.0\.2\.1'

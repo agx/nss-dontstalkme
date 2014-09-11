@@ -1,0 +1,22 @@
+Source: nss-dontstalkme
+Section: net
+Priority: extra
+Maintainer: Guido <agx@sigxcpu.org>
+Build-Depends: debhelper (>= 9), autotools-dev,
+ automake,
+ autoconf,
+ libtool,
+Standards-Version: 3.9.5
+Homepage: https://honk.sigxcpu.org/piki/nss-dontstalkme
+Vcs-Git: git://honk.sigxcpu.org/git/nss-dontstalkme.git -b debian/master
+Vcs-Browser: https://honk.sigxcpu.org/gitweb/?p=nss-dontstalkme.git
+
+Package: libnss-dontstalkme
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: nss module to block tracking hosts
+ nss-dontstalk me is a nsswitch module that maps host lookups of well known web
+ trackers to localhost so they become uneffective.
+ .
+ While other solutions such as browser plugins only target specific
+ applications this affects the whole system.
