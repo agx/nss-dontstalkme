@@ -47,6 +47,9 @@
  */
 const char* stalkers[] =  { /* https://support.google.com/analytics/answer/1009688?hl=en-GB */
                             ".google-analytics.com",
+                            ".doubleclick.net",
+                            "partner.googleadservices.com",
+                            "p.twitter.com",
                           };
 
 enum nss_status _nss_dontstalkme_gethostbyname4_r(const char *name,
