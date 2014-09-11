@@ -45,3 +45,10 @@ You can test the basic functionality by running
 
     LD_LIBRARY_PATH=$PWD/src/.libs/ getent ahostsv4 google-analytics.com
 
+Site
+----
+Check
+
+    https://honk.sigxcpu.org/piki/projects/nss-dontstalkme/
+
+for more information.
