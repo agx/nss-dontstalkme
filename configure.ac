@@ -20,7 +20,7 @@
 # Based on configure.ac from libnss-myhostname
 
 AC_PREREQ(2.62)
-AC_INIT([nss-dontstalkme],[0.0])
+AC_INIT([nss-dontstalkme],[0.0.1])
 AC_CONFIG_SRCDIR([src/nss-dontstalkme.c])
 dnl Make automake keep quiet about wildcards & other GNUmake-isms
 AM_INIT_AUTOMAKE([1.11.1 no-dist-gzip dist-xz -Wno-portability])
