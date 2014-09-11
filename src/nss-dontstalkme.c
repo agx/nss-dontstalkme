@@ -41,9 +41,12 @@
 #define _public_ __attribute__ ((visibility("default")))
 #define ARRAY_CARDINALITY(Array) (sizeof(Array) / sizeof(*(Array)))
 
-/* The hosts we blacklist */
-const char* stalkers[] =  { "www.google-analytics.com",
-                            "ssl.google-analytics.com",
+/*
+   The hosts we blacklist
+   To blacklist all hosts from domain foo.bar use .foo.bar
+ */
+const char* stalkers[] =  { /* https://support.google.com/analytics/answer/1009688?hl=en-GB */
+                            ".google-analytics.com",
                           };
 
 enum nss_status _nss_dontstalkme_gethostbyname4_r(const char *name,
@@ -72,6 +75,44 @@ enum nss_status _nss_dontstalkme_gethostbyname_r(const char *name,
                                                  int *errnop, int *h_errnop) _public_;
 
 
+/*
+ * check if host matches the given pattern.
+ *
+ * If pattern starts with a dot all names ending in pattern will
+ * match. Otherwise name has to match pattern exactly.
+*/
+static int
+match_pattern (const char *name, const char *pattern)
+{
+    int name_len = strlen(name);
+    int pattern_len = strlen(pattern);
+
+    if (pattern_len && pattern[0] == '.') {
+        if (name_len < pattern_len)
+            return 0;
+
+        return strcmp (name + name_len - pattern_len, pattern) == 0;
+    } else {
+        if (!strcasecmp(name, pattern))
+            return 1;
+    }
+    return 0;
+}
+
+
+static int
+is_stalker (const char* name)
+{
+    unsigned int i = 0;
+
+    for (i = 0; i < ARRAY_CARDINALITY(stalkers); i++) {
+        if (match_pattern(name, stalkers[i]))
+            return 1;
+    }
+    return 0;
+}
+
+
 enum nss_status
 _nss_dontstalkme_gethostbyname4_r(const char *name,
                                  struct gaih_addrtuple **pat,
@@ -82,17 +123,11 @@ _nss_dontstalkme_gethostbyname4_r(const char *name,
     unsigned lo_ifi;
     size_t l, idx, ms;
     char *r_name;
-    unsigned int  i;
     struct gaih_addrtuple *r_tuple, *r_tuple_prev = NULL;
 
     lo_ifi = if_nametoindex(LOOPBACK_INTERFACE);
 
-    for (i = 0; i < ARRAY_CARDINALITY(stalkers); i++) {
-        if (!strcasecmp(stalkers[i], name)) {
-            break;
-        }
-    }
-    if (i == ARRAY_CARDINALITY(stalkers)) {
+    if (! is_stalker(name)) {
         *errnop = ENOENT;
         *h_errnop = HOST_NOT_FOUND;
         return NSS_STATUS_NOTFOUND;
@@ -145,7 +180,7 @@ _nss_dontstalkme_gethostbyname4_r(const char *name,
     return NSS_STATUS_SUCCESS;
 }
 
-static inline size_t 
+static inline size_t
 proto_address_size(int proto)
 {
     assert(proto == AF_INET || proto == AF_INET6);
@@ -233,8 +268,6 @@ _nss_dontstalkme_gethostbyname3_r(const char *name,
                                  int32_t *ttlp,
                                  char **canonp)
 {
-    unsigned int i;
-
     if (af == AF_UNSPEC)
         af = AF_INET;
 
@@ -244,12 +277,7 @@ _nss_dontstalkme_gethostbyname3_r(const char *name,
         return NSS_STATUS_UNAVAIL;
     }
 
-    for (i = 0; i < ARRAY_CARDINALITY(stalkers); i++) {
-        if (!strcasecmp(stalkers[i], name)) {
-            break;
-        }
-    }
-    if (i == ARRAY_CARDINALITY(stalkers)) {
+    if (! is_stalker(name)) {
         *errnop = ENOENT;
         *h_errnop = HOST_NOT_FOUND;
         return NSS_STATUS_NOTFOUND;
